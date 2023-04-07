@@ -5,4 +5,4 @@ using System.Threading.Tasks;
 
 namespace Pathin.WalletWatcher.Config;
 
-public record EvmEndpointConfig(string Name, string RpcUrl);
+public record EvmEndpointConfig(string Name, string RpcUrl, string NativeToken, string? ExplorerUrl = null);

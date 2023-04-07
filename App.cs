@@ -65,7 +65,7 @@ public class App
                                 transaction.To != null && transaction.To.Equals(walletConfig.Address, StringComparison.OrdinalIgnoreCase))
                             {
                                 var receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transaction.TransactionHash);
-                                await SendDiscordWebhook(transaction, receipt, walletConfig, evmEndpointConfig.RpcUrl);
+                                await SendDiscordWebhook(transaction, receipt, walletConfig, evmEndpointConfig);
                             }
                         }
                     }
@@ -81,11 +81,12 @@ public class App
         }
     }
 
-    private static async Task SendDiscordWebhook(Transaction transaction, TransactionReceipt receipt, WalletConfig walletConfig, string evmRpcUrl)
+    private static async Task SendDiscordWebhook(Transaction transaction, TransactionReceipt receipt, WalletConfig walletConfig, EvmEndpointConfig evmEndpointConfig)
     {
         try
         {
-            var web3 = new Web3(evmRpcUrl);
+            var web3 = new Web3(evmEndpointConfig.RpcUrl);
+            var nativeToken = evmEndpointConfig.NativeToken;
 
             var walletAddress = walletConfig.Address;
             var webhookUrl = walletConfig.WebhookUrl;
@@ -130,7 +131,7 @@ public class App
                 string valueFormatted = value.ToString("N4");
                 string totalFormatted = total.ToString("N4");
 
-                description = $"**Type:** {transactionType}\n**{addressDescription}:** {partyAddress}\n**Value:** {valueFormatted} BNB\n**New total:** {totalFormatted} BNB";
+                description = $"**Type:** {transactionType}\n**{addressDescription}:** {partyAddress}\n**Value:** {valueFormatted} {nativeToken}\n**New total:** {totalFormatted} {nativeToken}";
             }
 
             var gasPrice = await web3.Eth.Transactions.GetTransactionByHash.SendRequestAsync(transaction.TransactionHash);
@@ -141,12 +142,12 @@ public class App
                 Title = $"New {walletConfig.Name} Transaction",
                 Description = description,
                 Color = 0x2ecc71,
-                Url = $"https://bscscan.com/tx/{transaction.TransactionHash}",
+                Url = evmEndpointConfig.ExplorerUrl != null ? string.Format(evmEndpointConfig.ExplorerUrl, transaction.TransactionHash) : null,
                 Timestamp = DateTime.UtcNow,
                 Footer = new EmbedFooterBuilder() { Text = "By Pathin with ❤️" },
             };
 
-            embed.AddField("Gas Used", $"{gasUsed} BNB");
+            embed.AddField("Gas Used", $"{gasUsed} {nativeToken}");
 
             var webhookClient = new DiscordWebhookClient(webhookUrl);
             await webhookClient.SendMessageAsync(null, embeds: new[] { embed.Build() });
@@ -167,13 +168,13 @@ public class App
     public class TransferEventDTO : IEventDTO
     {
         [Parameter("address", "_from", 1, true)]
-        public string From { get; set; }
+        public string From { get; init; } = default!;
 
         [Parameter("address", "_to", 2, true)]
-        public string To { get; set; }
+        public string To { get; init; } = default!;
 
         [Parameter("uint256", "_value", 3, false)]
-        public BigInteger Value { get; set; }
+        public BigInteger Value { get; init; } = default!;
     }
 
     private static async Task<int> GetTokenDecimals(Web3 web3, string contractAddress)
@@ -194,7 +195,7 @@ public class App
     public class BalanceOfFunction : FunctionMessage
     {
         [Parameter("address", "_owner", 1)]
-        public string Owner { get; set; }
+        public string Owner { get; init; } = default!;
     }
 
     private static async Task<BigInteger> GetTokenBalanceAsync(Web3 web3, string contractAddress, string ownerAddress)

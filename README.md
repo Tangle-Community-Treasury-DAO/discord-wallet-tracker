@@ -1,2 +1,2 @@
 # discord-wallet-tracker
-This is a bot designed to monitor the Tangle Community Treasuries gnosis safe wallet address.
+This is an application designed to monitor EVM compatible wallets, such as the Treasury Gnosis Safe Wallet and report it to Discord via Webhook.
