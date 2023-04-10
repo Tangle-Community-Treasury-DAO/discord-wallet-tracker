@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Rules for StyleCop.Analyzers" Description="Organization wide code analysis rules for StyleCop.Analyzers." ToolsVersion="14.0">
+  <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
+    <Rule Id="SX1101" Action="Warning" />
+    <Rule Id="SX1309" Action="Warning" />
+    <Rule Id="SX1309S" Action="Warning" />
+    <Rule Id="SA1101" Action="None" />
+    <Rule Id="SA1306" Action="None" />
+    <Rule Id="SA1309" Action="None" />
+    <Rule Id="SA1609" Action="None" />
+  </Rules>
+</RuleSet>

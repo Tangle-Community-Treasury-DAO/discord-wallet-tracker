@@ -10,15 +10,15 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net7.0/Pathin.WalletWatcher.dll",
+            "program": "${workspaceFolder}/src/Pathin.WalletWatcher/bin/Debug/net7.0/Pathin.WalletWatcher.dll",
             "args": [],
+            "cwd": "${workspaceFolder}/src/Pathin.WalletWatcher",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false,
             "env": {
                 "APP_ENVIRONMENT": "Development"
             },
-            "cwd": "${workspaceFolder}",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
-            "stopAtEntry": false
         },
         {
             "name": ".NET Core Attach",
