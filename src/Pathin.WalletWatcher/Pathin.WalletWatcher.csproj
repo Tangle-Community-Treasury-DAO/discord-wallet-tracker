@@ -5,7 +5,23 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <CodeAnalysisRuleSet>../../styles/dotnet/StyleCop.Analyzers.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+
+    <ItemGroup>
+    <AdditionalFiles Include="../../styles/dotnet/stylecop.json">
+      <Link>stylecop.json</Link>
+    </AdditionalFiles>
+  </ItemGroup>
+
+    <ItemGroup>
+      <None Update="appsettings.json">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Condition="$(Configuration) == 'Debug'" Update="appsettings.Development.json">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Discord.Net.Webhook" Version="3.10.0" />
@@ -20,7 +36,18 @@
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="3.4.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="System.Runtime.Numerics" Version="4.3.0" />
   </ItemGroup>
 
+  <Target Name="CopyAppsettings" BeforeTargets="BeforeBuild" Condition="!Exists('$(ProjectDir)../../appsettings.json')">
+    <Message Text="Copying appsettings." Importance="High" />
+
+    <Copy SourceFiles="$(ProjectDir)../../appsettings.Example.json" DestinationFiles="$(ProjectDir)../../appsettings.json" />
+
+    <Message Text="Copied appsettings." Importance="High" />
+  </Target>
 </Project>

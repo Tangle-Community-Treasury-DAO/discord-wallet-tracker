@@ -1,0 +1,17 @@
+﻿{
+  "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
+  "settings": {
+    "documentationRules": {
+      "companyName": "palow UG (haftungsbeschränkt) and palow GmbH",
+      "fileNamingConvention": "stylecop",
+      "copyrightText": "Copyright (c) {companyName} 2023. All rights reserved.\nAny illegal reproduction of this content will result in immediate legal action."
+    },
+    "layoutRules": {
+      "newlineAtEndOfFile": "omit"
+    },
+    "orderingRules": {
+      "systemUsingDirectivesFirst": true,
+      "usingDirectivesPlacement": "outsideNamespace"
+    }
+  }
+}
