@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "prepare_debug",
+            "cwd": "/app",
+            "program": "/app/bin/Pathin.WalletWatcher.dll",
+            "args": [],
+            "sourceFileMap": {
+                "/app": "${workspaceFolder}",
+            },       
+            "pipeTransport": {
+                "pipeProgram": "docker",
+                "pipeCwd": "${workspaceFolder}",
+                "pipeArgs": [
+                    "exec -i wallet-watcher"
+                ],
+                "debuggerPath": "/vsdbg/vsdbg",
+                "quoteArgs": false
+            },
+            "postDebugTask": "docker-compose: down"
+        }
+    ]
+}
