@@ -1,0 +1,79 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Pathin.WalletWatcher.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/Pathin.WalletWatcher.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "watch",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "run",
+                "--project",
+                "${workspaceFolder}/Pathin.WalletWatcher.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "docker-compose: up",
+            "type": "docker-compose",
+            "dockerCompose": {
+                "up": {
+                    "detached": true,
+                    "build": true,
+                    "services": [
+                        "wallet-watcher"
+                    ]
+                },
+                "files": [
+                    "${workspaceFolder}/../../docker-compose.debug.yml",
+                ]
+            }
+        },
+        {
+            "label": "docker-compose: down",
+            "type": "docker-compose",
+            "dockerCompose": {
+                "down": {
+                    "services": [
+                        "wallet-watcher"
+                    ]
+                },
+                "files": [
+                    "${workspaceFolder}/../../docker-compose.debug.yml",
+                ]
+            }
+        },
+        {
+            "label": "prepare_debug",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "build",
+                "docker-compose: up"
+            ],
+        }
+    ]
+}

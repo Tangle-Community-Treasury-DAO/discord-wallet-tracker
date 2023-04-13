@@ -1,0 +1,19 @@
+
+version: '3.4'
+
+services:
+  wallet-watcher:
+    image: wallet-watcher:debug
+    container_name: wallet-watcher
+    build:
+      context: .
+      dockerfile: src/Pathin.WalletWatcher/Dockerfile.Debug
+    environment:
+      - APP_ENVIRONMENT=Development
+    volumes:
+      - type: bind
+        source: ./src/Pathin.WalletWatcher/
+        target: /app
+      - type: bind
+        source: ./src/Pathin.WalletWatcher/bin/Debug/net7.0/
+        target: /app/bin

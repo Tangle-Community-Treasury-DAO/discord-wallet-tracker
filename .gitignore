@@ -398,4 +398,7 @@ FodyWeavers.xsd
 *.sln.iml
 
 # Custom
-appsettings.json
+.env*
+!.env.example
+appsettings.**json
+!appsettings.Example.json
