@@ -1,0 +1,11 @@
+{
+    "omnisharp.enableMsBuildLoadProjectsOnDemand": true,
+    "omnisharp.enableRoslynAnalyzers": true,
+    "editor.fontLigatures": true,
+    "editor.formatOnType": true,
+    "omnisharp.enableImportCompletion": true,
+    "omnisharp.useModernNet": true,
+    "csharpextensions.useFileScopedNamespace": true,
+    "typescript.suggest.paths": false,
+    "javascript.suggest.paths": false
+}

@@ -27,7 +27,7 @@ Docker is the only supported way to deploy the app.
 - dotnet SDK 7.0
 
 ### Working on the project
-1. Open the wallet-tracker.code-workspace file with Visual Studio Code
+1. Open the folder with Visual Studio Code
 2. Install the recommended plugins
 3. Work on it
 4. ???

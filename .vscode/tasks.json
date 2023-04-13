@@ -49,7 +49,7 @@
                     ]
                 },
                 "files": [
-                    "${workspaceFolder}/../../docker-compose.debug.yml",
+                    "${workspaceFolder}/docker-compose.debug.yml",
                 ]
             }
         },
@@ -63,7 +63,7 @@
                     ]
                 },
                 "files": [
-                    "${workspaceFolder}/../../docker-compose.debug.yml",
+                    "${workspaceFolder}/docker-compose.debug.yml",
                 ]
             }
         },

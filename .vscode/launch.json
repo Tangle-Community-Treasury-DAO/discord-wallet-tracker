@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug",
+            "name": "Debug App",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "prepare_debug",
