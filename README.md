@@ -1,4 +1,4 @@
-# discord-wallet-tracker
+# Discord Wallet Tracker
 
 This is an application designed to monitor EVM compatible wallets, such as the Treasury Gnosis Safe Wallet and report it to Discord via Webhook.
 
@@ -27,7 +27,7 @@ Docker is the only supported way to deploy the app.
 - dotnet SDK 7.0
 
 ### Working on the project
-1. Open the folder with Visual Studio Code
+1. Clone the repository and open it in Visual Studio Code
 2. Install the recommended plugins
 3. Work on it
 4. ???
