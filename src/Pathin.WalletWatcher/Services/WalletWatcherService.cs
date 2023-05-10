@@ -215,7 +215,7 @@ public partial class WalletWatcherService : IAppService
                 var totalValueInUsd = totalValue * tokenPriceUsd;
                 var newTotalValueUsd = group.First().NewTotal * tokenPriceUsd;
 
-                description.Append($"**{group.Key.Type}: {totalValue:N} {group.First().Symbol} ({totalValueInUsd:N2} USD)\nRemaining: {group.First().NewTotal:N} {group.First().Symbol} ({newTotalValueUsd:N2} USD)**\n");
+                description.Append($"**{group.Key.Type}: {totalValue} {group.First().Symbol} ({totalValueInUsd:N2} USD)\nRemaining: {group.First().NewTotal} {group.First().Symbol} ({newTotalValueUsd:N2} USD)**\n");
 
                 // Group by party address
                 var partyGroups = group.GroupBy(tx => tx.PartyAddress).ToList();
@@ -226,7 +226,7 @@ public partial class WalletWatcherService : IAppService
                     decimal partyValueInUsd = partyValue * tokenPriceUsd;
 
                     string addressDescription = group.Key.Type == TransactionType.Send ? "To" : "From";
-                    description.Append($"• {addressDescription}: {partyGroup.Key} | Value: {partyValue:N} {group.First().Symbol} ({partyValueInUsd:N2} USD)\n");
+                    description.Append($"• {addressDescription}: {partyGroup.Key} | Value: {partyValue} {group.First().Symbol} ({partyValueInUsd:N2} USD)\n");
                 }
 
                 description.AppendLine();
@@ -249,7 +249,7 @@ public partial class WalletWatcherService : IAppService
                 totalGasValueInUsd = transactionDisplayInfo.GasUsed * (tokenPrice.CurrentPriceUsd ?? 0);
             }
 
-            embed.AddField("⛽ Gas Used", $"{transactionDisplayInfo.GasUsed:N} {nativeToken} ({totalGasValueInUsd:N2} USD)");
+            embed.AddField("⛽ Gas Used", $"{transactionDisplayInfo.GasUsed} {nativeToken} ({totalGasValueInUsd:N2} USD)");
 
             var webhookClient = new DiscordWebhookClient(walletConfig.WebhookUrl);
             await webhookClient.SendMessageAsync(null, embeds: new[] { embed.Build() });
