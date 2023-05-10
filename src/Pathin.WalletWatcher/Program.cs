@@ -9,6 +9,9 @@ using Microsoft.Extensions.Logging;
 using Pathin.WalletWatcher;
 using Pathin.WalletWatcher.Config;
 using Pathin.WalletWatcher.Services;
+using Pathin.WalletWatcher.Services.PriceData;
+using Pathin.WalletWatcher.Services.PriceData.Source;
+using Pathin.WalletWatcher.Services.PriceData.Source.Implementations;
 using Serilog;
 
 var configurationBuilder = new ConfigurationBuilder()
@@ -27,6 +30,8 @@ var services = new ServiceCollection();
 services.AddSingleton<IConfiguration>(configuration);
 services.AddSingleton<ILoggerFactory, LoggerFactory>();
 services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
+services.AddSingleton<IPriceDataSource, CoinGeckoDataSource>();
+services.AddSingleton<PriceDataService>();
 services.AddLogging(builder => builder.AddSerilog());
 services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
 services.AddTransient<App>();

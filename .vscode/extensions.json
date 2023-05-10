@@ -4,21 +4,22 @@
 
 	// List of extensions which should be recommended for users of this workspace.
 	"recommendations": [
-        "adrianwilczynski.add-reference",
-        "fernandoescolar.vscode-solution-explorer",
-        "fullstackspider.visual-nuget",
-        "aaron-bond.better-comments",
-        "ms-dotnettools.csharp",
-        "corylulu.csharp-interpolated-string-converter",
-        "adrianwilczynski.namespace",
-        "ms-azuretools.vscode-docker",
-        "editorconfig.editorconfig",
-        "antfu.file-nesting",
-        "quicktype.quicktype",
-        "yzhang.markdown-all-in-one",
-        "tintoy.msbuild-project-tools",
-        "christian-kohler.path-intellisense"
-	],
+                "adrianwilczynski.add-reference",
+                "fernandoescolar.vscode-solution-explorer",
+                "fullstackspider.visual-nuget",
+                "aaron-bond.better-comments",
+                "ms-dotnettools.csharp",
+                "corylulu.csharp-interpolated-string-converter",
+                "adrianwilczynski.namespace",
+                "ms-azuretools.vscode-docker",
+                "editorconfig.editorconfig",
+                "antfu.file-nesting",
+                "quicktype.quicktype",
+                "yzhang.markdown-all-in-one",
+                "tintoy.msbuild-project-tools",
+                "christian-kohler.path-intellisense",
+                "kreativ-software.csharpextensions"
+        ],
 	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
 	"unwantedRecommendations": [
 		

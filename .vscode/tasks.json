@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/Pathin.WalletWatcher.csproj",
+                "${workspaceFolder}/src/Pathin.WalletWatcher/Pathin.WalletWatcher.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/Pathin.WalletWatcher.csproj",
+                "${workspaceFolder}/src/Pathin.WalletWatcher/Pathin.WalletWatcher.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/Pathin.WalletWatcher.csproj"
+                "${workspaceFolder}/src/Pathin.WalletWatcher/Pathin.WalletWatcher.csproj"
             ],
             "problemMatcher": "$msCompile"
         },
