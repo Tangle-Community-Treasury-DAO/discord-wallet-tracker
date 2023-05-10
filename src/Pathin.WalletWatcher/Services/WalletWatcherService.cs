@@ -4,8 +4,10 @@
 // </copyright>
 
 using System.Numerics;
+using System.Text;
 using Discord;
 using Discord.Webhook;
+using ICCD.UltimatePriceBot.App.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Nethereum.Contracts.Standards.ERC20.ContractDefinition;
@@ -14,7 +16,11 @@ using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
 using Pathin.WalletWatcher.Attributes;
 using Pathin.WalletWatcher.Config;
+using Pathin.WalletWatcher.Enums;
+using Pathin.WalletWatcher.Extensions;
 using Pathin.WalletWatcher.Interfaces;
+using Pathin.WalletWatcher.Services.PriceData;
+using Pathin.WalletWatcher.Services.PriceData.Source;
 using Pathin.WalletWatcher.Services.TransactionParsers;
 
 namespace Pathin.WalletWatcher.Services;
@@ -27,6 +33,7 @@ public partial class WalletWatcherService : IAppService
 {
     private readonly ILogger<App> _logger;
     private readonly IOptions<AppSettings> _appSettings;
+    private readonly PriceDataService _priceDataService;
     private readonly ITransactionParser _defaultTransactionParser;
     private readonly ITransactionParser _erc20TransactionParser;
     private readonly ITransactionParser _gnosisSafeTransactionParser;
@@ -39,10 +46,12 @@ public partial class WalletWatcherService : IAppService
     /// </summary>
     /// <param name="logger">The logger instance.</param>
     /// <param name="appSettings">The application settings instance.</param>
-    public WalletWatcherService(ILogger<App> logger, IOptions<AppSettings> appSettings)
+    /// <param name="priceDataService">The price data service instance.</param>
+    public WalletWatcherService(ILogger<App> logger, IOptions<AppSettings> appSettings, PriceDataService priceDataService)
     {
         _logger = logger;
         _appSettings = appSettings;
+        _priceDataService = priceDataService;
         _defaultTransactionParser = new DefaultTransactionParser();
         _erc20TransactionParser = new Erc20TransactionParser();
         _gnosisSafeTransactionParser = new GnosisSafeTransactionParser();
@@ -93,6 +102,12 @@ public partial class WalletWatcherService : IAppService
 
     private async Task ProcessWallet(WalletConfig walletConfig, EvmEndpointConfig evmEndpointConfig, CancellationToken cancellationToken)
     {
+        if (walletConfig == null || evmEndpointConfig == null)
+        {
+            _logger.LogError("Either walletConfig or evmEndpointConfig is null.");
+            return;
+        }
+
         while (!cancellationToken.IsCancellationRequested)
         {
             try
@@ -109,34 +124,36 @@ public partial class WalletWatcherService : IAppService
                         {
                             var block = await web3.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(new HexBigInteger(i));
 
-                            var receiptTasks = block.Transactions.Select(transaction => web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transaction.TransactionHash));
+                            if (block?.Transactions == null)
+                            {
+                                continue;
+                            }
+
+                            var filteredTransactions = block.Transactions
+                            .Select((transaction, index) => new { Transaction = transaction, Index = index })
+                            .Where(item => item.Transaction.TransactionHash != null)
+                            .ToList();
+
+                            var receiptTasks = filteredTransactions.Select(item => web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(item.Transaction.TransactionHash));
                             var receipts = await Task.WhenAll(receiptTasks);
 
-                            for (var j = 0; j < block.Transactions.Length; j++)
+                            foreach (var item in filteredTransactions)
                             {
+                                var transaction = item.Transaction;
+                                var index = item.Index;
+                                var receipt = receipts[index];
 
-                                var transaction = block.Transactions[j];
-                                var receipt = receipts[j];
-
-                                if(receipt == null || receipt.Status.Value == 0)
+                                if (receipt == null || receipt.Status.Value == 0)
                                 {
                                     continue;
                                 }
 
-    //                             var relevantLogs = receipt.Logs.Where(log => log["topics"].Any() && log["topics"][0].ToString().Equals("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef", StringComparison.InvariantCultureIgnoreCase) &&
-    // log["topics"].Count() > 2 && Web3.ToChecksumAddress(log["topics"][2].ToString()) == walletConfig.Address);
-
-    //                             // Convert JToken logs to FilterLog objects
-    //                             var filterLogs = relevantLogs.Select(log => log.ToObject<FilterLog>()).ToArray();
-
-    //                             var decodedLogs = transferEvent.DecodeAllEventsForEvent(filterLogs);
-    //                             bool isTransferToAddress = decodedLogs.Any();
-
                                 // Decode and filter the logs
                                 var decodedLogs = transferEvent.DecodeAllEventsForEvent(receipt.Logs);
                                 var isTransferToAddress = decodedLogs.Any(log => log.Event.To.Equals(walletConfig.Address, StringComparison.OrdinalIgnoreCase));
+                                var isTransferFromAddress = decodedLogs.Any(log => log.Event.From.Equals(walletConfig.Address, StringComparison.OrdinalIgnoreCase));
 
-                                if (isTransferToAddress || (transaction.From != null && transaction.From.Equals(walletConfig.Address, StringComparison.OrdinalIgnoreCase)) ||
+                                if (isTransferFromAddress || isTransferToAddress || (transaction.From != null && transaction.From.Equals(walletConfig.Address, StringComparison.OrdinalIgnoreCase)) ||
                                     (transaction.To != null && transaction.To.Equals(walletConfig.Address, StringComparison.OrdinalIgnoreCase)))
                                 {
                                     // Get the correct transaction parser based on the transaction type
@@ -177,24 +194,62 @@ public partial class WalletWatcherService : IAppService
             var web3 = new Web3(evmEndpointConfig.RpcUrl);
             var nativeToken = evmEndpointConfig.NativeToken;
 
-            string description = string.Empty;
-            foreach (var transaction in transactionDisplayInfo.Transactions)
+            // Group transactions by type and symbol
+            var groupedTransactions = transactionDisplayInfo.Transactions
+                .GroupBy(tx => new { tx.Type, tx.Symbol })
+                .ToList();
+
+            var description = new StringBuilder();
+
+            // Iterate through grouped transactions
+            foreach (var group in groupedTransactions)
             {
-                string addressDescription = transaction.Type == TransactionType.Send ? "To" : "From";
-                description = $"**Type:** {transaction.Type}\n**{addressDescription}:** {transaction.PartyAddress}\n**Value:** {transaction.Value} {transaction.Symbol}\n**New total:** {transaction.NewTotal} {transaction.Symbol}";
+                var totalValue = group.Sum(tx => tx.Value);
+                decimal tokenPriceUsd = 0;
+
+                if (_priceDataService.TokenExists(group.Key.Symbol))
+                {
+                    tokenPriceUsd = (await _priceDataService.GetPriceDataAsync(group.Key.Symbol)).CurrentPriceUsd ?? 0;
+                }
+
+                var totalValueInUsd = totalValue * tokenPriceUsd;
+                var newTotalValueUsd = group.First().NewTotal * tokenPriceUsd;
+
+                description.Append($"**{group.Key.Type}: {totalValue:N} {group.First().Symbol} ({totalValueInUsd:N2} USD)\nRemaining: {group.First().NewTotal:N} {group.First().Symbol} ({newTotalValueUsd:N2} USD)**\n");
+
+                // Group by party address
+                var partyGroups = group.GroupBy(tx => tx.PartyAddress).ToList();
+
+                foreach (var partyGroup in partyGroups)
+                {
+                    var partyValue = partyGroup.Sum(tx => tx.Value);
+                    decimal partyValueInUsd = partyValue * tokenPriceUsd;
+
+                    string addressDescription = group.Key.Type == TransactionType.Send ? "To" : "From";
+                    description.Append($"• {addressDescription}: {partyGroup.Key} | Value: {partyValue:N} {group.First().Symbol} ({partyValueInUsd:N2} USD)\n");
+                }
+
+                description.AppendLine();
             }
 
             var embed = new EmbedBuilder
             {
                 Title = transactionDisplayInfo.Title,
-                Description = description,
-                Color = 0x2ecc71,
+                Description = description.ToString(),
+                Color = new Color(0x1abc9c),
                 Url = transactionDisplayInfo.Url,
                 Timestamp = DateTime.UtcNow,
                 Footer = new EmbedFooterBuilder() { Text = "By Pathin with ❤️" },
             };
 
-            embed.AddField("Gas Used", $"{transactionDisplayInfo.GasUsed} {nativeToken}");
+            decimal totalGasValueInUsd = 0;
+            if (_priceDataService.TokenExists(nativeToken))
+            {
+                var tokenPrice = await _priceDataService.GetPriceDataAsync(nativeToken);
+                totalGasValueInUsd = transactionDisplayInfo.GasUsed * (tokenPrice.CurrentPriceUsd ?? 0);
+            }
+
+            embed.AddField("⛽ Gas Used", $"{transactionDisplayInfo.GasUsed:N} {nativeToken} ({totalGasValueInUsd:N2} USD)");
 
             var webhookClient = new DiscordWebhookClient(walletConfig.WebhookUrl);
             await webhookClient.SendMessageAsync(null, embeds: new[] { embed.Build() });
@@ -207,12 +262,11 @@ public partial class WalletWatcherService : IAppService
 
     private ITransactionParser GetTransactionParser(Transaction transaction)
     {
-        // Detect transaction type here, e.g., based on the input data
-        if (transaction.Input.Length > 2 && transaction.Input.StartsWith("0xa9059cbb")) // ERC20 transfer
+        if (transaction.Input.Length > 2 && transaction.Input.StartsWith(SmartContractConstants.ERC20TransferFunctionSignature))
         {
             return _erc20TransactionParser;
         }
-        else if(GnosisSafeTransactionParser.IsGnosisSafeTransaction(transaction))
+        else if (GnosisSafeTransactionParser.IsGnosisSafeTransaction(transaction))
         {
             return _gnosisSafeTransactionParser;
         }

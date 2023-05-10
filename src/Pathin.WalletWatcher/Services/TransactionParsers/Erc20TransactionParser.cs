@@ -1,19 +1,64 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+// <copyright file="Erc20TransactionParser.cs" company="palow UG (haftungsbeschränkt) and palow GmbH">
+// Copyright (c) palow UG (haftungsbeschränkt) and palow GmbH 2023. All rights reserved.
+// Any illegal reproduction of this content will result in immediate legal action.
+// </copyright>
+
 using System.Numerics;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Nethereum.Contracts.Standards.ERC20.ContractDefinition;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
 using Pathin.WalletWatcher.Config;
+using Pathin.WalletWatcher.Enums;
 using Pathin.WalletWatcher.Interfaces;
 
 namespace Pathin.WalletWatcher.Services.TransactionParsers;
 
+/// <summary>
+/// Represents an implementation of the <see cref="ITransactionParser"/> interface for parsing ERC20 token transactions.
+/// </summary>
 public class Erc20TransactionParser : ITransactionParser
 {
+    /// <summary>
+    /// Retrieves the number of decimals for the specified token contract.
+    /// </summary>
+    /// <param name="web3">The Web3 instance.</param>
+    /// <param name="contractAddress">The token contract address.</param>
+    /// <returns>The number of decimals for the token contract.</returns>
+    public static async Task<int> GetTokenDecimals(Web3 web3, string contractAddress)
+    {
+        var decimalsFunction = new DecimalsFunction();
+        var decimalsHandler = web3.Eth.GetContractQueryHandler<DecimalsFunction>();
+        return await decimalsHandler.QueryAsync<int>(contractAddress, decimalsFunction);
+    }
+
+    /// <summary>
+    /// Retrieves the symbol for the specified token contract.
+    /// </summary>
+    /// <param name="web3">The Web3 instance.</param>
+    /// <param name="contractAddress">The token contract address.</param>
+    /// <returns>The symbol for the token contract.</returns>
+    public static async Task<string> GetTokenSymbol(Web3 web3, string contractAddress)
+    {
+        var symbolFunction = new SymbolFunction();
+        var symbolHandler = web3.Eth.GetContractQueryHandler<SymbolFunction>();
+        return await symbolHandler.QueryAsync<string>(contractAddress, symbolFunction);
+    }
+
+    /// <summary>
+    /// Retrieves the token balance for the specified owner address.
+    /// </summary>
+    /// <param name="web3">The Web3 instance.</param>
+    /// <param name="contractAddress">The token contract address.</param>
+    /// <param name="ownerAddress">The owner address to query the balance for.</param>
+    /// <returns>The token balance for the specified owner address.</returns>
+    public static async Task<BigInteger> GetTokenBalanceAsync(Web3 web3, string contractAddress, string ownerAddress)
+    {
+        var balanceOfFunction = new BalanceOfFunction { Owner = ownerAddress };
+        var balanceHandler = web3.Eth.GetContractQueryHandler<BalanceOfFunction>();
+        return await balanceHandler.QueryAsync<BigInteger>(contractAddress, balanceOfFunction);
+    }
+
+    /// <inheritdoc/>
     public async Task<TransactionDisplayInfo?> ParseTransactionAsync(Transaction transaction, TransactionReceipt receipt, WalletConfig walletConfig, EvmEndpointConfig evmEndpointConfig)
     {
         var web3 = new Web3(evmEndpointConfig.RpcUrl);
@@ -45,26 +90,4 @@ public class Erc20TransactionParser : ITransactionParser
 
         return transactionDisplayInfo;
     }
-
-    public static async Task<int> GetTokenDecimals(Web3 web3, string contractAddress)
-    {
-        var decimalsFunction = new DecimalsFunction();
-        var decimalsHandler = web3.Eth.GetContractQueryHandler<DecimalsFunction>();
-        return await decimalsHandler.QueryAsync<int>(contractAddress, decimalsFunction);
-    }
-
-    public static async Task<string> GetTokenSymbol(Web3 web3, string contractAddress)
-    {
-        var symbolFunction = new SymbolFunction();
-        var symbolHandler = web3.Eth.GetContractQueryHandler<SymbolFunction>();
-        return await symbolHandler.QueryAsync<string>(contractAddress, symbolFunction);
-    }
-
-    public static async Task<BigInteger> GetTokenBalanceAsync(Web3 web3, string contractAddress, string ownerAddress)
-    {
-        var balanceOfFunction = new BalanceOfFunction { Owner = ownerAddress };
-        var balanceHandler = web3.Eth.GetContractQueryHandler<BalanceOfFunction>();
-        return await balanceHandler.QueryAsync<BigInteger>(contractAddress, balanceOfFunction);
-    }
-
 }
