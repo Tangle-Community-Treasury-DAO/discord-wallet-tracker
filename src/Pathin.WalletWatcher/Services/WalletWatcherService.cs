@@ -171,7 +171,7 @@ public partial class WalletWatcherService : IAppService
                         currentBlockNumber = latestBlockNumber;
                     }
 
-                    await Task.Delay(10000, cancellationToken);
+                    await Task.Delay(30000, cancellationToken);
                 }
             }
             catch (OperationCanceledException)
@@ -182,7 +182,7 @@ public partial class WalletWatcherService : IAppService
             catch (Exception e)
             {
                 _logger.LogError(e, "Error processing wallet {WalletAddress} on {EvmEndpoint}. Retrying after delay.", walletConfig.Address, evmEndpointConfig.RpcUrl);
-                await Task.Delay(10000, cancellationToken); // Delay for 30 seconds before retrying
+                await Task.Delay(30000, cancellationToken); // Delay for 30 seconds before retrying
             }
         }
     }
