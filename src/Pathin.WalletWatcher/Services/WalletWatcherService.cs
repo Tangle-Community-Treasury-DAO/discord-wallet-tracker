@@ -113,6 +113,7 @@ public partial class WalletWatcherService : IAppService
             try
             {
                 var web3 = new Web3(evmEndpointConfig.RpcUrl);
+                var batchRpcClient = new BatchRpcClient(evmEndpointConfig.RpcUrl, _logger);
                 var currentBlockNumber = await web3.Eth.Blocks.GetBlockNumber.SendRequestAsync();
                 var transferEvent = web3.Eth.GetEvent<TransferEventDTO>();
                 while (true)
@@ -134,8 +135,7 @@ public partial class WalletWatcherService : IAppService
                             .Where(item => item.Transaction.TransactionHash != null)
                             .ToList();
 
-                            var receiptTasks = filteredTransactions.Select(item => web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(item.Transaction.TransactionHash));
-                            var receipts = await Task.WhenAll(receiptTasks);
+                            var receipts = await batchRpcClient.GetTransactionReceiptsAsync(filteredTransactions.Select(item => item.Transaction.TransactionHash).ToArray());
 
                             foreach (var item in filteredTransactions)
                             {
@@ -171,7 +171,7 @@ public partial class WalletWatcherService : IAppService
                         currentBlockNumber = latestBlockNumber;
                     }
 
-                    await Task.Delay(30000, cancellationToken);
+                    await Task.Delay(10000, cancellationToken);
                 }
             }
             catch (OperationCanceledException)
@@ -182,7 +182,7 @@ public partial class WalletWatcherService : IAppService
             catch (Exception e)
             {
                 _logger.LogError(e, "Error processing wallet {WalletAddress} on {EvmEndpoint}. Retrying after delay.", walletConfig.Address, evmEndpointConfig.RpcUrl);
-                await Task.Delay(30000, cancellationToken); // Delay for 30 seconds before retrying
+                await Task.Delay(10000, cancellationToken); // Delay for 10 seconds before retrying
             }
         }
     }
