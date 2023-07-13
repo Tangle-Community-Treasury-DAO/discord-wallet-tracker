@@ -45,6 +45,7 @@ public class App
         _logger.LogInformation("Starting services...");
         await StartServices();
 
+        /*
         while (true)
         {
             _logger.LogInformation("Enter a command (Start, Stop, Status, or Exit):");
@@ -60,6 +61,7 @@ public class App
                 Thread.Sleep(1000);
             }
         }
+        */
     }
 
     private async Task StartServices()
